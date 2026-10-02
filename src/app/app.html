@@ -1,7 +1,105 @@
-<p>Coins: {{ coins().length }}</p>
+<div class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+        Cryptocurrency Market
+      </h1>
+      <p class="mt-1 text-sm text-slate-500">
+        Top 10 coins ranked by market capitalization
+      </p>
+    </div>
 
-@for (coin of coins(); track $index) {
-  <img [src]="coin.image" [alt]="coin.name" />
-  <p>{{ coin.symbol }}</p>
-  <p>{{ coin.name }}</p>
-}
+    <input
+      type="search"
+      placeholder="Search coin or symbol"
+      aria-label="Search coins"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:outline-none sm:w-64"
+    />
+  </header>
+
+  @if (error(); as message) {
+    <div class="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center">
+      <p class="text-sm font-semibold text-rose-800">Could not load market data</p>
+      <p class="mt-1 text-sm text-rose-600">{{ message }}</p>
+    </div>
+  } @else if (loading()) {
+    <div class="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white py-20 shadow-sm">
+      <span
+        class="size-8 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600"
+        aria-hidden="true"
+      ></span>
+      <p class="text-sm text-slate-500">Loading coins…</p>
+    </div>
+  } @else {
+    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-sm">
+          <caption class="sr-only">Cryptocurrencies ranked by market capitalization</caption>
+          <thead class="bg-slate-50">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                #
+              </th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                Coin
+              </th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                Price
+              </th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                24h
+              </th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                Market Cap
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @for (coin of filteredCoins(); track coin.id) {
+              <tr class="transition-colors hover:bg-slate-50">
+                <td class="px-4 py-3 tabular-nums text-slate-400">{{ coin.market_cap_rank }}</td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-3">
+                    <img
+                      [src]="coin.image"
+                      [alt]="coin.name"
+                      width="28"
+                      height="28"
+                      loading="lazy"
+                      class="size-7 shrink-0 rounded-full"
+                    />
+                    <div class="min-w-0">
+                      <p class="truncate font-semibold text-slate-900">{{ coin.name }}</p>
+                      <p class="text-xs tracking-wide text-slate-400 uppercase">{{ coin.symbol }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-right font-medium tabular-nums text-slate-900">
+                  {{ coin.current_price | currency: 'USD' : 'symbol' : '1.2-2' }}
+                </td>
+                <td
+                  class="px-4 py-3 text-right font-medium tabular-nums"
+                  [class.text-emerald-600]="coin.price_change_percentage_24h >= 0"
+                  [class.text-rose-600]="coin.price_change_percentage_24h < 0"
+                >
+                  {{ coin.price_change_percentage_24h | number: '1.2-2' }}%
+                </td>
+                <td class="px-4 py-3 text-right tabular-nums text-slate-600">
+                  {{ coin.market_cap | currency: 'USD' : 'symbol' : '1.0-0' }}
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="px-4 py-12 text-center text-slate-400">
+                  No coins match “{{ search() }}”
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>
